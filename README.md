@@ -13,6 +13,10 @@ This simple HTML + JavaScript tool helps you calculate the total amount to charg
 - Lightweight, no dependencies
 - Easy to customize or embed
 
+## 🌐 Demo Site
+
+Try it live at: [https://surcharge.jpps.us](https://surcharge.jpps.us)
+
 ## 💻 Usage
 
 1. Clone or download this repo
@@ -21,8 +25,8 @@ This simple HTML + JavaScript tool helps you calculate the total amount to charg
 
 ## 📦 File Structure
 
-├── index.html       # Main calculator interface
-├── README.md        # Project documentation
+index.html       # Main calculator interface
+ README.md        # Project documentation
 
 
 ## 📜 License
