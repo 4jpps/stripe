@@ -26,7 +26,7 @@ Try it live at: [https://surcharge.jpps.us](https://surcharge.jpps.us)
 ## 📦 File Structure
 
 index.html       # Main calculator interface
- README.md        # Project documentation
+README.md        # Project documentation
 
 
 ## 📜 License
