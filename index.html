@@ -116,9 +116,15 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
       display: block;
       color: var(--text-main);
+    }
+
+    .step {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
     }
 
     .copy-btn {
@@ -187,7 +193,7 @@
           <span>$${totalCharge.toFixed(2)}</span>
         </div>
         <div class="result-row">
-          <span class="label-text">Stripe Fee</span>
+          <span class="label-text">Actual Stripe Fee</span>
           <span>$${stripeFee.toFixed(2)}</span>
         </div>
         <div class="result-row surcharge-row">
@@ -201,16 +207,20 @@
         </div>
         
         <div class="breakdown-section">
-          <span class="breakdown-title">Fee Breakdown</span>
-          <div class="result-row" style="margin-bottom: 4px;">
-            <span>2.9% of $${totalCharge.toFixed(2)}</span>
-            <span>$${(totalCharge * feeRate).toFixed(3)}</span>
+          <span class="breakdown-title">Logic Breakdown</span>
+          <div class="step">
+            <span>1. Net + $${fixedFee.toFixed(2)} fixed fee</span>
+            <span>$${(net + fixedFee).toFixed(2)}</span>
           </div>
-          <div class="result-row" style="margin-bottom: 8px;">
-            <span>Fixed Fee</span>
-            <span>$${fixedFee.toFixed(2)}</span>
+          <div class="step">
+            <span>2. Cover 2.9% fee (divide by 0.971)</span>
+            <span>$${totalCharge.toFixed(3)}</span>
           </div>
-          <div class="result-row" style="border-top: 1px solid var(--glass-border); padding-top: 8px;">
+          <div class="step" style="margin-top: 8px; font-weight: 600; color: var(--text-main);">
+            <span>3. Final Rounded Charge</span>
+            <span>$${totalCharge.toFixed(2)}</span>
+          </div>
+          <div class="step" style="margin-top: 8px; border-top: 1px solid var(--glass-border); padding-top: 8px; opacity: 0.7;">
             <span>Rounding Variance</span>
             <span>$${variance.toFixed(5)}</span>
           </div>
