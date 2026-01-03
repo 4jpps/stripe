@@ -3,12 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Net Payout Calculator</title>
+  <title>Stripe Surcharge Calculator</title>
   <style>
-    /* THEME CONFIGURATION
-       We use CSS Variables to ensure all text colors swap correctly 
-       between Light and Dark modes.
-    */
     :root {
       --glass-bg: rgba(255, 255, 255, 0.7);
       --glass-border: rgba(255, 255, 255, 0.4);
@@ -17,17 +13,19 @@
       --accent: #6366f1;
       --input-bg: rgba(255, 255, 255, 0.5);
       --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+      --logo-fill: #6366f1;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
         --glass-bg: rgba(31, 41, 55, 0.7);
         --glass-border: rgba(255, 255, 255, 0.1);
-        --text-main: #f9fafb; /* Ensuring white text in dark mode */
+        --text-main: #f9fafb;
         --text-muted: #9ca3af;
         --accent: #818cf8;
         --input-bg: rgba(0, 0, 0, 0.2);
         --bg-gradient: linear-gradient(135deg, #111827 0%, #1e1b4b 100%);
+        --logo-fill: #818cf8;
       }
     }
 
@@ -35,7 +33,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg-gradient);
       background-attachment: fixed;
-      color: var(--text-main); /* Inherit correct theme color */
+      color: var(--text-main);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -53,23 +51,28 @@
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 380px;
-      color: var(--text-main); /* Explicitly set card text color */
     }
 
-    h2 { 
-      margin-top: 0; 
-      font-size: 1.5rem; 
-      letter-spacing: -0.02em; 
-      color: var(--text-main); /* Fixed: Now turns white in dark mode */
+    /* Logo Styling */
+    .brand-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
     }
+    .brand-logo {
+      height: 32px;
+      width: auto;
+    }
+    .brand-logo .accent-part { fill: var(--logo-fill); }
+    .brand-logo .text-part { fill: var(--text-main); }
 
     label {
       display: block;
       margin-bottom: 0.6rem;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
+      letter-spacing: 0.08em;
+      font-weight: 700;
       color: var(--text-muted);
     }
 
@@ -83,6 +86,11 @@
       color: var(--text-main);
       box-sizing: border-box;
       outline: none;
+      transition: box-shadow 0.2s;
+    }
+
+    input[type="number"]:focus {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
     }
 
     .result-container {
@@ -96,7 +104,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 0.8rem;
-      color: var(--text-main); /* Ensures total charge result text is themed */
     }
 
     .surcharge-row {
@@ -141,9 +148,10 @@
       border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      transition: background 0.2s;
+      transition: background 0.2s, transform 0.1s;
     }
 
+    .copy-btn:active { transform: scale(0.95); }
     .label-text { color: var(--text-muted); }
     .icon { width: 14px; height: 14px; fill: currentColor; }
   </style>
@@ -151,7 +159,15 @@
 <body>
 
   <div class="glass-card">
-    <h2>Stripe Calc</h2>
+    <div class="brand-header">
+      <svg class="brand-logo" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+        <rect class="accent-part" x="0" y="8" width="28" height="20" rx="4" />
+        <path class="accent-part" d="M4 4h28v4H4z" opacity="0.5" />
+        <text x="40" y="28" font-family="sans-serif" font-weight="800" font-size="22" class="text-part">STRIPE</text>
+        <text x="122" y="28" font-family="sans-serif" font-weight="300" font-size="22" class="text-part">CALC</text>
+      </svg>
+    </div>
+
     <label for="netPayout">Desired Net Payout</label>
     <input type="number" id="netPayout" placeholder="0.00" step="0.01">
 
@@ -161,7 +177,7 @@
   <script>
     /**
      * STRIPE NET PAYOUT CALCULATOR
-     * Configuration and logic for reverse-fee calculation.
+     * Logic: Total = (Net + FixedFee) / (1 - FeeRate)
      */
 
     const STRIPE_FEE_RATE = 0.029; 
@@ -186,14 +202,12 @@
 
     inputField.addEventListener('input', function () {
       const net = parseFloat(this.value);
-      
       if (isNaN(net) || net <= 0) {
         outputDiv.style.display = 'none';
         return;
       }
 
       outputDiv.style.display = 'block';
-      
       const subtotal = net + STRIPE_FIXED_FEE;
       const exactTotal = subtotal / (1 - STRIPE_FEE_RATE);
       const roundedTotal = Math.round(exactTotal * 100) / 100;
