@@ -50,17 +50,17 @@
       border: 1px solid var(--glass-border);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 380px;
+      max-width: 420px; /* Slightly wider to accommodate longer title */
     }
 
-    /* Logo Styling */
+    /* Updated SVG Branding */
     .brand-header {
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       display: flex;
-      align-items: center;
+      justify-content: center;
     }
     .brand-logo {
-      height: 32px;
+      height: 45px;
       width: auto;
     }
     .brand-logo .accent-part { fill: var(--logo-fill); }
@@ -86,11 +86,12 @@
       color: var(--text-main);
       box-sizing: border-box;
       outline: none;
-      transition: box-shadow 0.2s;
+      transition: all 0.2s;
     }
 
     input[type="number"]:focus {
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
     }
 
     .result-container {
@@ -107,7 +108,7 @@
     }
 
     .surcharge-row {
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: 800;
       color: var(--accent);
       margin: 1.2rem 0;
@@ -143,14 +144,17 @@
       color: #fff;
       border: none;
       cursor: pointer;
-      padding: 8px;
+      padding: 8px 12px;
       margin-left: 10px;
       border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      transition: background 0.2s, transform 0.1s;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
     }
 
+    .copy-btn:hover { opacity: 0.9; }
     .copy-btn:active { transform: scale(0.95); }
     .label-text { color: var(--text-muted); }
     .icon { width: 14px; height: 14px; fill: currentColor; }
@@ -160,11 +164,12 @@
 
   <div class="glass-card">
     <div class="brand-header">
-      <svg class="brand-logo" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
-        <rect class="accent-part" x="0" y="8" width="28" height="20" rx="4" />
-        <path class="accent-part" d="M4 4h28v4H4z" opacity="0.5" />
-        <text x="40" y="28" font-family="sans-serif" font-weight="800" font-size="22" class="text-part">STRIPE</text>
-        <text x="122" y="28" font-family="sans-serif" font-weight="300" font-size="22" class="text-part">CALC</text>
+      <svg class="brand-logo" viewBox="0 0 320 60" xmlns="http://www.w3.org/2000/svg">
+        <rect class="accent-part" x="0" y="10" width="35" height="25" rx="5" />
+        <rect class="accent-part" x="5" y="15" width="25" height="4" opacity="0.4" fill="white" />
+        <text x="45" y="32" font-family="sans-serif" font-weight="800" font-size="20" class="text-part">STRIPE</text>
+        <text x="125" y="32" font-family="sans-serif" font-weight="700" font-size="20" class="text-part">SURCHARGE</text>
+        <text x="45" y="52" font-family="sans-serif" font-weight="300" font-size="14" class="text-part" letter-spacing="2">CALCULATOR</text>
       </svg>
     </div>
 
@@ -176,8 +181,8 @@
 
   <script>
     /**
-     * STRIPE NET PAYOUT CALCULATOR
-     * Logic: Total = (Net + FixedFee) / (1 - FeeRate)
+     * STRIPE SURCHARGE CALCULATOR
+     * Documented reverse-fee logic with variance tracking.
      */
 
     const STRIPE_FEE_RATE = 0.029; 
@@ -186,8 +191,8 @@
     const inputField = document.getElementById('netPayout');
     const outputDiv = document.getElementById('output');
 
-    const copyIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
-    const checkIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
+    const copyIcon = `<svg class="icon" viewBox="0 0 24 24" style="margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy`;
+    const checkIcon = `<svg class="icon" viewBox="0 0 24 24" style="margin-right: 4px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Done`;
 
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
