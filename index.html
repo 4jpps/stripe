@@ -31,7 +31,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg-gradient);
       background-attachment: fixed;
-      color: var(--text-main);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -73,13 +72,6 @@
       color: var(--text-main);
       box-sizing: border-box;
       outline: none;
-      transition: all 0.2s;
-    }
-
-    input[type="number"]:focus {
-      border-color: var(--accent);
-      background: var(--glass-bg);
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
     }
 
     .result-container {
@@ -96,10 +88,10 @@
     }
 
     .surcharge-row {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: 800;
       color: var(--accent);
-      margin: 1rem 0;
+      margin: 1.2rem 0;
     }
 
     .breakdown-section {
@@ -124,7 +116,7 @@
     .step {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .copy-btn {
@@ -132,15 +124,14 @@
       color: white;
       border: none;
       cursor: pointer;
-      padding: 6px;
+      padding: 8px;
       margin-left: 10px;
       border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      transition: transform 0.1s;
+      transition: background 0.2s;
     }
 
-    .copy-btn:active { transform: scale(0.9); }
     .label-text { color: var(--text-muted); }
     .icon { width: 14px; height: 14px; fill: currentColor; }
   </style>
@@ -182,19 +173,21 @@
       }
 
       outputDiv.style.display = 'block';
-      const totalCharge = (net + fixedFee) / (1 - feeRate);
-      const stripeFee = totalCharge * feeRate + fixedFee;
-      const surcharge = totalCharge - net;
-      const variance = Math.abs((net + stripeFee) - totalCharge);
+      
+      // The Raw Math
+      const exactTotal = (net + fixedFee) / (1 - feeRate);
+      
+      // The Reality
+      const roundedTotal = Math.round(exactTotal * 100) / 100;
+      const surcharge = roundedTotal - net;
+      
+      // The Gap
+      const variance = Math.abs(exactTotal - roundedTotal);
 
       outputDiv.innerHTML = `
         <div class="result-row">
           <span class="label-text">Total to Charge</span>
-          <span>$${totalCharge.toFixed(2)}</span>
-        </div>
-        <div class="result-row">
-          <span class="label-text">Actual Stripe Fee</span>
-          <span>$${stripeFee.toFixed(2)}</span>
+          <span style="font-weight: 600;">$${roundedTotal.toFixed(2)}</span>
         </div>
         <div class="result-row surcharge-row">
           <span>Surcharge</span>
@@ -209,20 +202,20 @@
         <div class="breakdown-section">
           <span class="breakdown-title">Logic Breakdown</span>
           <div class="step">
-            <span>1. Net + $${fixedFee.toFixed(2)} fixed fee</span>
+            <span>1. Net + $${fixedFee.toFixed(2)} Fee</span>
             <span>$${(net + fixedFee).toFixed(2)}</span>
           </div>
           <div class="step">
-            <span>2. Cover 2.9% fee (divide by 0.971)</span>
-            <span>$${totalCharge.toFixed(3)}</span>
+            <span>2. Divisor (100% - 2.9%)</span>
+            <span>÷ 0.971</span>
           </div>
-          <div class="step" style="margin-top: 8px; font-weight: 600; color: var(--text-main);">
-            <span>3. Final Rounded Charge</span>
-            <span>$${totalCharge.toFixed(2)}</span>
-          </div>
-          <div class="step" style="margin-top: 8px; border-top: 1px solid var(--glass-border); padding-top: 8px; opacity: 0.7;">
-            <span>Rounding Variance</span>
+          <div class="step" style="opacity: 0.8;">
+            <span>3. Rounding Variance</span>
             <span>$${variance.toFixed(5)}</span>
+          </div>
+          <div class="step" style="margin-top: 8px; border-top: 1px solid var(--glass-border); padding-top: 8px; font-weight: 700; color: var(--text-main);">
+            <span>4. Final Charge</span>
+            <span>$${roundedTotal.toFixed(2)}</span>
           </div>
         </div>
       `;
