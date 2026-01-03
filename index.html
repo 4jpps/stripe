@@ -50,7 +50,7 @@
       border: 1px solid var(--border-color);
     }
 
-    h2 { margin-top: 0; font-size: 1.5rem; }
+    h2 { margin-top: 0; font-size: 1.5rem; font-weight: 700; }
 
     label {
       display: block;
@@ -98,6 +98,16 @@
       margin-bottom: 1rem;
     }
 
+    .variance-row {
+      margin-top: 1rem;
+      padding-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-color);
+      display: flex;
+      justify-content: space-between;
+    }
+
     .copy-btn {
       background: none;
       border: none;
@@ -108,17 +118,12 @@
       border-radius: 4px;
       display: inline-flex;
       align-items: center;
-      transition: background 0.2s;
+      vertical-align: middle;
     }
 
-    .copy-btn:hover {
-      background: rgba(99, 102, 241, 0.1);
-    }
-
+    .copy-btn:hover { background: rgba(99, 102, 241, 0.1); }
     .label-text { color: var(--text-muted); }
-    
-    /* Simple SVG Icon Styling */
-    .icon { width: 16px; height: 16px; fill: currentColor; }
+    .icon { width: 14px; height: 14px; fill: currentColor; }
   </style>
 </head>
 <body>
@@ -136,7 +141,6 @@
     const fixedFee = 0.30;
     const outputDiv = document.getElementById('output');
 
-    // Clipboard icons
     const copyIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
     const checkIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
 
@@ -158,6 +162,7 @@
       const totalCharge = (net + fixedFee) / (1 - feeRate);
       const stripeFee = totalCharge * feeRate + fixedFee;
       const surcharge = totalCharge - net;
+      const variance = Math.abs((net + stripeFee) - totalCharge);
 
       outputDiv.innerHTML = `
         <div class="result-row total">
@@ -176,6 +181,10 @@
               ${copyIcon}
             </button>
           </span>
+        </div>
+        <div class="variance-row">
+          <span>Rounding Variance</span>
+          <span>$${variance.toFixed(4)}</span>
         </div>
       `;
     });
