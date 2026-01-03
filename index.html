@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Net Payout Calculator</title>
   <style>
-    /* THEME SETTINGS 
-       Using CSS variables for easy maintenance and System Theme support (Dark/Light)
+    /* THEME CONFIGURATION
+       We use CSS Variables to ensure all text colors swap correctly 
+       between Light and Dark modes.
     */
     :root {
       --glass-bg: rgba(255, 255, 255, 0.7);
@@ -22,7 +23,7 @@
       :root {
         --glass-bg: rgba(31, 41, 55, 0.7);
         --glass-border: rgba(255, 255, 255, 0.1);
-        --text-main: #f9fafb;
+        --text-main: #f9fafb; /* Ensuring white text in dark mode */
         --text-muted: #9ca3af;
         --accent: #818cf8;
         --input-bg: rgba(0, 0, 0, 0.2);
@@ -34,6 +35,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg-gradient);
       background-attachment: fixed;
+      color: var(--text-main); /* Inherit correct theme color */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -51,9 +53,15 @@
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 380px;
+      color: var(--text-main); /* Explicitly set card text color */
     }
 
-    h2 { margin-top: 0; font-size: 1.5rem; letter-spacing: -0.02em; }
+    h2 { 
+      margin-top: 0; 
+      font-size: 1.5rem; 
+      letter-spacing: -0.02em; 
+      color: var(--text-main); /* Fixed: Now turns white in dark mode */
+    }
 
     label {
       display: block;
@@ -88,6 +96,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 0.8rem;
+      color: var(--text-main); /* Ensures total charge result text is themed */
     }
 
     .surcharge-row {
@@ -124,7 +133,7 @@
 
     .copy-btn {
       background: var(--accent);
-      color: white;
+      color: #fff;
       border: none;
       cursor: pointer;
       padding: 8px;
@@ -152,45 +161,32 @@
   <script>
     /**
      * STRIPE NET PAYOUT CALCULATOR
-     * * Logic: To ensure the user receives a specific "Net" amount, we must 
-     * account for the fact that Stripe's percentage fee is taken from the 
-     * TOTAL charge, not just the net. 
-     * * Formula: Total = (Net + FixedFee) / (1 - PercentageFee)
+     * Configuration and logic for reverse-fee calculation.
      */
 
-    // --- CONFIGURATION ---
-    const STRIPE_FEE_RATE = 0.029; // 2.9%
-    const STRIPE_FIXED_FEE = 0.30; // $0.30
+    const STRIPE_FEE_RATE = 0.029; 
+    const STRIPE_FIXED_FEE = 0.30; 
     
-    // --- DOM ELEMENTS ---
     const inputField = document.getElementById('netPayout');
     const outputDiv = document.getElementById('output');
 
-    // --- ASSETS ---
     const copyIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
     const checkIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
 
-    /**
-     * Copies text to clipboard and provides visual feedback on the button
-     */
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         btn.innerHTML = checkIcon;
-        btn.style.background = '#10b981'; // Green feedback
+        btn.style.background = '#10b981';
         setTimeout(() => { 
           btn.innerHTML = copyIcon; 
-          btn.style.background = ''; // Revert to theme accent
+          btn.style.background = ''; 
         }, 2000);
       });
     }
 
-    /**
-     * Main Calculation Event
-     */
     inputField.addEventListener('input', function () {
       const net = parseFloat(this.value);
       
-      // Validation: Only calculate if input is a valid positive number
       if (isNaN(net) || net <= 0) {
         outputDiv.style.display = 'none';
         return;
@@ -198,29 +194,16 @@
 
       outputDiv.style.display = 'block';
       
-      // 1. Calculate base (Net + Fixed Fee)
       const subtotal = net + STRIPE_FIXED_FEE;
-      
-      // 2. Calculate the "Perfect" Total using Reverse Math
-      // We divide by (1 - fee) because the Net is the remaining 97.1% of the total.
       const exactTotal = subtotal / (1 - STRIPE_FEE_RATE);
-      
-      // 3. Real-world Rounding
-      // Banks only process to 2 decimal places.
       const roundedTotal = Math.round(exactTotal * 100) / 100;
-      
-      // 4. Calculate Final Surcharge
       const surcharge = roundedTotal - net;
-      
-      // 5. Variance Tracking
-      // Difference between mathematical ideal and the rounded cent charge.
       const variance = Math.abs(exactTotal - roundedTotal);
 
-      // --- RENDER OUTPUT ---
       outputDiv.innerHTML = `
         <div class="result-row">
           <span class="label-text">Total to Charge</span>
-          <span style="font-weight: 600;">$${roundedTotal.toFixed(2)}</span>
+          <span style="font-weight: 600; color: var(--text-main);">$${roundedTotal.toFixed(2)}</span>
         </div>
         <div class="result-row surcharge-row">
           <span>Surcharge</span>
