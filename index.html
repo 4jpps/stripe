@@ -2,58 +2,181 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Net Payout Calculator</title>
   <style>
+    :root {
+      --bg-color: #f9fafb;
+      --card-bg: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --accent: #6366f1;
+      --border-color: #e5e7eb;
+      --input-bg: #ffffff;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #111827;
+        --card-bg: #1f2937;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --accent: #818cf8;
+        --border-color: #374151;
+        --input-bg: #374151;
+        --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      }
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      max-width: 450px;
-      margin: 40px auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
     }
-    label, input {
+
+    .card {
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid var(--border-color);
+    }
+
+    h2 { margin-top: 0; font-size: 1.5rem; }
+
+    label {
       display: block;
-      margin-bottom: 10px;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
     }
+
     input[type="number"] {
       width: 100%;
-      padding: 8px;
-      font-size: 1em;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      box-sizing: border-box;
+      outline: none;
     }
-    .result {
-      margin-top: 20px;
-      font-weight: bold;
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
     }
+
+    .result-container {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    .result-row.total {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 8px;
+      color: var(--accent);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .label-text { color: var(--text-muted); }
+    
+    /* Simple SVG Icon Styling */
+    .icon { width: 16px; height: 16px; fill: currentColor; }
   </style>
 </head>
 <body>
-  <h2>Stripe Net Payout Calculator</h2>
-  <label for="netPayout">Enter Desired Net Payout ($):</label>
-  <input type="number" id="netPayout" placeholder="e.g. 9.99" step="0.01" min="0">
-  <div class="result" id="output"></div>
+
+  <div class="card">
+    <h2>Stripe Payout</h2>
+    <label for="netPayout">Desired Net Payout ($)</label>
+    <input type="number" id="netPayout" placeholder="0.00" step="0.01" min="0">
+
+    <div id="output" class="result-container" style="display: none;"></div>
+  </div>
 
   <script>
     const feeRate = 0.029;
     const fixedFee = 0.30;
+    const outputDiv = document.getElementById('output');
+
+    // Clipboard icons
+    const copyIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+    const checkIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
+
+    function copyToClipboard(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerHTML = checkIcon;
+        setTimeout(() => { btn.innerHTML = copyIcon; }, 2000);
+      });
+    }
 
     document.getElementById('netPayout').addEventListener('input', function () {
       const net = parseFloat(this.value);
       if (isNaN(net) || net <= 0) {
-        document.getElementById('output').textContent = '';
+        outputDiv.style.display = 'none';
         return;
       }
 
+      outputDiv.style.display = 'block';
       const totalCharge = (net + fixedFee) / (1 - feeRate);
       const stripeFee = totalCharge * feeRate + fixedFee;
       const surcharge = totalCharge - net;
-      const variance = Math.abs((net + stripeFee) - totalCharge);
 
-      document.getElementById('output').innerHTML = `
-        Total to Charge: $${totalCharge.toFixed(2)}<br>
-        Stripe Fee: $${stripeFee.toFixed(2)}<br>
-        Surcharge: $${surcharge.toFixed(2)}<br>
-        Rounding Variance: $${variance.toFixed(2)}
+      outputDiv.innerHTML = `
+        <div class="result-row total">
+          <span>Total to Charge</span>
+          <span>$${totalCharge.toFixed(2)}</span>
+        </div>
+        <div class="result-row">
+          <span class="label-text">Stripe Fee</span>
+          <span>$${stripeFee.toFixed(2)}</span>
+        </div>
+        <div class="result-row">
+          <span class="label-text">Surcharge</span>
+          <span>
+            $${surcharge.toFixed(2)}
+            <button class="copy-btn" title="Copy Surcharge" onclick="copyToClipboard('${surcharge.toFixed(2)}', this)">
+              ${copyIcon}
+            </button>
+          </span>
+        </div>
       `;
     });
   </script>
