@@ -6,7 +6,6 @@
   <title>Net Payout Calculator</title>
   <style>
     :root {
-      /* Dynamic Glass Variables */
       --glass-bg: rgba(255, 255, 255, 0.7);
       --glass-border: rgba(255, 255, 255, 0.4);
       --text-main: #1f2937;
@@ -96,7 +95,6 @@
       margin-bottom: 0.8rem;
     }
 
-    /* Surcharge is now the Bold focus */
     .surcharge-row {
       font-size: 1.2rem;
       font-weight: 800;
@@ -104,19 +102,23 @@
       margin: 1rem 0;
     }
 
-    .total-row {
-      font-weight: 400; /* Normal weight for Total */
-      font-size: 1rem;
+    .breakdown-section {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border: 1px dashed var(--glass-border);
     }
 
-    .variance-row {
-      margin-top: 1rem;
-      padding-top: 0.8rem;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      border-top: 1px dashed var(--glass-border);
-      display: flex;
-      justify-content: space-between;
+    .breakdown-title {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      display: block;
+      color: var(--text-main);
     }
 
     .copy-btn {
@@ -158,7 +160,7 @@
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         btn.innerHTML = checkIcon;
-        btn.style.background = '#10b981'; // Success Green
+        btn.style.background = '#10b981';
         setTimeout(() => { 
           btn.innerHTML = copyIcon; 
           btn.style.background = '';
@@ -180,7 +182,7 @@
       const variance = Math.abs((net + stripeFee) - totalCharge);
 
       outputDiv.innerHTML = `
-        <div class="result-row total-row">
+        <div class="result-row">
           <span class="label-text">Total to Charge</span>
           <span>$${totalCharge.toFixed(2)}</span>
         </div>
@@ -197,9 +199,21 @@
             </button>
           </span>
         </div>
-        <div class="variance-row">
-          <span>Variance</span>
-          <span>$${variance.toFixed(4)}</span>
+        
+        <div class="breakdown-section">
+          <span class="breakdown-title">Fee Breakdown</span>
+          <div class="result-row" style="margin-bottom: 4px;">
+            <span>2.9% of $${totalCharge.toFixed(2)}</span>
+            <span>$${(totalCharge * feeRate).toFixed(3)}</span>
+          </div>
+          <div class="result-row" style="margin-bottom: 8px;">
+            <span>Fixed Fee</span>
+            <span>$${fixedFee.toFixed(2)}</span>
+          </div>
+          <div class="result-row" style="border-top: 1px solid var(--glass-border); padding-top: 8px;">
+            <span>Rounding Variance</span>
+            <span>$${variance.toFixed(5)}</span>
+          </div>
         </div>
       `;
     });
