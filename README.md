@@ -59,12 +59,4 @@ This project is licensed under the MIT License. Feel free to use, modify, and sh
 ## 🙋‍♂️ Author
 
 Created by [Jeff Parrish PC Services](https://github.com/4jpps)
-
 Independent MSP specializing in IT solutions, automation, and client-friendly support flows.
-
-```
-
-### Key Additions to your README:
-* **Visual Interest**: Added emojis and a `text` block for the file structure to make it scannable.
-* **The Math Section**: Added the LaTeX formula and an image placeholder to explain why this tool is better than a standard "add 3%" calculator.
-* **Configuration Note**: Mentioned the `STRIPE_FEE_RATE` constant so other developers know how to tweak it for international rates (like 1.4% for UK/EU).
