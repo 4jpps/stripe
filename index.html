@@ -6,32 +6,32 @@
   <title>Net Payout Calculator</title>
   <style>
     :root {
-      --bg-color: #f9fafb;
-      --card-bg: #ffffff;
-      --text-main: #111827;
-      --text-muted: #6b7280;
+      /* Dynamic Glass Variables */
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.4);
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
       --accent: #6366f1;
-      --border-color: #e5e7eb;
-      --input-bg: #ffffff;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --input-bg: rgba(255, 255, 255, 0.5);
+      --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg-color: #111827;
-        --card-bg: #1f2937;
+        --glass-bg: rgba(31, 41, 55, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
         --text-main: #f9fafb;
         --text-muted: #9ca3af;
         --accent: #818cf8;
-        --border-color: #374151;
-        --input-bg: #374151;
-        --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        --input-bg: rgba(0, 0, 0, 0.2);
+        --bg-gradient: linear-gradient(135deg, #111827 0%, #1e1b4b 100%);
       }
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
+      background: var(--bg-gradient);
+      background-attachment: fixed;
       color: var(--text-main);
       display: flex;
       justify-content: center;
@@ -40,98 +40,109 @@
       margin: 0;
     }
 
-    .card {
-      background-color: var(--card-bg);
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       padding: 2rem;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 400px;
-      border: 1px solid var(--border-color);
+      max-width: 380px;
     }
 
-    h2 { margin-top: 0; font-size: 1.5rem; font-weight: 700; }
+    h2 { margin-top: 0; font-size: 1.5rem; letter-spacing: -0.02em; }
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
+      margin-bottom: 0.6rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
       color: var(--text-muted);
     }
 
     input[type="number"] {
       width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background-color: var(--input-bg);
+      padding: 1rem;
+      font-size: 1.1rem;
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      background: var(--input-bg);
       color: var(--text-main);
       box-sizing: border-box;
       outline: none;
+      transition: all 0.2s;
     }
 
     input[type="number"]:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      background: var(--glass-bg);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
     }
 
     .result-container {
       margin-top: 1.5rem;
       padding-top: 1.5rem;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--glass-border);
     }
 
     .result-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.75rem;
-      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
     }
 
-    .result-row.total {
-      font-size: 1.25rem;
-      font-weight: 700;
+    /* Surcharge is now the Bold focus */
+    .surcharge-row {
+      font-size: 1.2rem;
+      font-weight: 800;
       color: var(--accent);
-      margin-bottom: 1rem;
+      margin: 1rem 0;
+    }
+
+    .total-row {
+      font-weight: 400; /* Normal weight for Total */
+      font-size: 1rem;
     }
 
     .variance-row {
       margin-top: 1rem;
-      padding-top: 0.5rem;
-      font-size: 0.75rem;
+      padding-top: 0.8rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
-      border-top: 1px dashed var(--border-color);
+      border-top: 1px dashed var(--glass-border);
       display: flex;
       justify-content: space-between;
     }
 
     .copy-btn {
-      background: none;
+      background: var(--accent);
+      color: white;
       border: none;
       cursor: pointer;
-      padding: 4px;
-      margin-left: 8px;
-      color: var(--accent);
-      border-radius: 4px;
+      padding: 6px;
+      margin-left: 10px;
+      border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      vertical-align: middle;
+      transition: transform 0.1s;
     }
 
-    .copy-btn:hover { background: rgba(99, 102, 241, 0.1); }
+    .copy-btn:active { transform: scale(0.9); }
     .label-text { color: var(--text-muted); }
     .icon { width: 14px; height: 14px; fill: currentColor; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Stripe Payout</h2>
-    <label for="netPayout">Desired Net Payout ($)</label>
-    <input type="number" id="netPayout" placeholder="0.00" step="0.01" min="0">
+  <div class="glass-card">
+    <h2>Stripe Calc</h2>
+    <label for="netPayout">Desired Net Payout</label>
+    <input type="number" id="netPayout" placeholder="0.00" step="0.01">
 
     <div id="output" class="result-container" style="display: none;"></div>
   </div>
@@ -147,7 +158,11 @@
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         btn.innerHTML = checkIcon;
-        setTimeout(() => { btn.innerHTML = copyIcon; }, 2000);
+        btn.style.background = '#10b981'; // Success Green
+        setTimeout(() => { 
+          btn.innerHTML = copyIcon; 
+          btn.style.background = '';
+        }, 2000);
       });
     }
 
@@ -165,25 +180,25 @@
       const variance = Math.abs((net + stripeFee) - totalCharge);
 
       outputDiv.innerHTML = `
-        <div class="result-row total">
-          <span>Total to Charge</span>
+        <div class="result-row total-row">
+          <span class="label-text">Total to Charge</span>
           <span>$${totalCharge.toFixed(2)}</span>
         </div>
         <div class="result-row">
           <span class="label-text">Stripe Fee</span>
           <span>$${stripeFee.toFixed(2)}</span>
         </div>
-        <div class="result-row">
-          <span class="label-text">Surcharge</span>
-          <span>
+        <div class="result-row surcharge-row">
+          <span>Surcharge</span>
+          <span style="display: flex; align-items: center;">
             $${surcharge.toFixed(2)}
-            <button class="copy-btn" title="Copy Surcharge" onclick="copyToClipboard('${surcharge.toFixed(2)}', this)">
+            <button class="copy-btn" onclick="copyToClipboard('${surcharge.toFixed(2)}', this)">
               ${copyIcon}
             </button>
           </span>
         </div>
         <div class="variance-row">
-          <span>Rounding Variance</span>
+          <span>Variance</span>
           <span>$${variance.toFixed(4)}</span>
         </div>
       `;
