@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Net Payout Calculator</title>
   <style>
+    /* THEME SETTINGS 
+       Using CSS variables for easy maintenance and System Theme support (Dark/Light)
+    */
     :root {
       --glass-bg: rgba(255, 255, 255, 0.7);
       --glass-border: rgba(255, 255, 255, 0.4);
@@ -42,7 +45,7 @@
       background: var(--glass-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      padding: 2rem;
+      padding: 2.2rem;
       border-radius: 24px;
       border: 1px solid var(--glass-border);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
@@ -88,7 +91,7 @@
     }
 
     .surcharge-row {
-      font-size: 1.3rem;
+      font-size: 1.35rem;
       font-weight: 800;
       color: var(--accent);
       margin: 1.2rem 0;
@@ -96,7 +99,7 @@
 
     .breakdown-section {
       margin-top: 1.5rem;
-      padding: 1rem;
+      padding: 1.2rem;
       background: rgba(0, 0, 0, 0.03);
       border-radius: 12px;
       font-size: 0.75rem;
@@ -108,7 +111,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.8rem;
+      margin-bottom: 1rem;
       display: block;
       color: var(--text-main);
     }
@@ -147,26 +150,47 @@
   </div>
 
   <script>
-    const feeRate = 0.029;
-    const fixedFee = 0.30;
+    /**
+     * STRIPE NET PAYOUT CALCULATOR
+     * * Logic: To ensure the user receives a specific "Net" amount, we must 
+     * account for the fact that Stripe's percentage fee is taken from the 
+     * TOTAL charge, not just the net. 
+     * * Formula: Total = (Net + FixedFee) / (1 - PercentageFee)
+     */
+
+    // --- CONFIGURATION ---
+    const STRIPE_FEE_RATE = 0.029; // 2.9%
+    const STRIPE_FIXED_FEE = 0.30; // $0.30
+    
+    // --- DOM ELEMENTS ---
+    const inputField = document.getElementById('netPayout');
     const outputDiv = document.getElementById('output');
 
+    // --- ASSETS ---
     const copyIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
     const checkIcon = `<svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`;
 
+    /**
+     * Copies text to clipboard and provides visual feedback on the button
+     */
     function copyToClipboard(text, btn) {
       navigator.clipboard.writeText(text).then(() => {
         btn.innerHTML = checkIcon;
-        btn.style.background = '#10b981';
+        btn.style.background = '#10b981'; // Green feedback
         setTimeout(() => { 
           btn.innerHTML = copyIcon; 
-          btn.style.background = '';
+          btn.style.background = ''; // Revert to theme accent
         }, 2000);
       });
     }
 
-    document.getElementById('netPayout').addEventListener('input', function () {
+    /**
+     * Main Calculation Event
+     */
+    inputField.addEventListener('input', function () {
       const net = parseFloat(this.value);
+      
+      // Validation: Only calculate if input is a valid positive number
       if (isNaN(net) || net <= 0) {
         outputDiv.style.display = 'none';
         return;
@@ -174,16 +198,25 @@
 
       outputDiv.style.display = 'block';
       
-      // The Raw Math
-      const exactTotal = (net + fixedFee) / (1 - feeRate);
+      // 1. Calculate base (Net + Fixed Fee)
+      const subtotal = net + STRIPE_FIXED_FEE;
       
-      // The Reality
+      // 2. Calculate the "Perfect" Total using Reverse Math
+      // We divide by (1 - fee) because the Net is the remaining 97.1% of the total.
+      const exactTotal = subtotal / (1 - STRIPE_FEE_RATE);
+      
+      // 3. Real-world Rounding
+      // Banks only process to 2 decimal places.
       const roundedTotal = Math.round(exactTotal * 100) / 100;
+      
+      // 4. Calculate Final Surcharge
       const surcharge = roundedTotal - net;
       
-      // The Gap
+      // 5. Variance Tracking
+      // Difference between mathematical ideal and the rounded cent charge.
       const variance = Math.abs(exactTotal - roundedTotal);
 
+      // --- RENDER OUTPUT ---
       outputDiv.innerHTML = `
         <div class="result-row">
           <span class="label-text">Total to Charge</span>
@@ -193,7 +226,7 @@
           <span>Surcharge</span>
           <span style="display: flex; align-items: center;">
             $${surcharge.toFixed(2)}
-            <button class="copy-btn" onclick="copyToClipboard('${surcharge.toFixed(2)}', this)">
+            <button class="copy-btn" title="Copy Surcharge" onclick="copyToClipboard('${surcharge.toFixed(2)}', this)">
               ${copyIcon}
             </button>
           </span>
@@ -202,18 +235,22 @@
         <div class="breakdown-section">
           <span class="breakdown-title">Logic Breakdown</span>
           <div class="step">
-            <span>1. Net + $${fixedFee.toFixed(2)} Fee</span>
-            <span>$${(net + fixedFee).toFixed(2)}</span>
+            <span>1. Net + Fixed Fee ($${STRIPE_FIXED_FEE.toFixed(2)})</span>
+            <span>$${subtotal.toFixed(2)}</span>
           </div>
           <div class="step">
-            <span>2. Divisor (100% - 2.9%)</span>
-            <span>÷ 0.971</span>
+            <span>2. Add 2.9% of Total</span>
+            <span>+$${(exactTotal - subtotal).toFixed(3)}</span>
           </div>
-          <div class="step" style="opacity: 0.8;">
-            <span>3. Rounding Variance</span>
+          <div class="step">
+            <span>3. Raw Calculated Total</span>
+            <span>$${exactTotal.toFixed(4)}</span>
+          </div>
+          <div class="step" style="opacity: 0.8; font-style: italic;">
+            <span>Rounding Variance</span>
             <span>$${variance.toFixed(5)}</span>
           </div>
-          <div class="step" style="margin-top: 8px; border-top: 1px solid var(--glass-border); padding-top: 8px; font-weight: 700; color: var(--text-main);">
+          <div class="step" style="margin-top: 10px; border-top: 1px solid var(--glass-border); padding-top: 10px; font-weight: 700; color: var(--text-main);">
             <span>4. Final Charge</span>
             <span>$${roundedTotal.toFixed(2)}</span>
           </div>
