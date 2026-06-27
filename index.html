@@ -66,7 +66,6 @@
     .brand-logo .accent-part { fill: var(--logo-fill); }
     .brand-logo .text-part { fill: var(--text-main); }
 
-    /* Updated Card Logos Styling */
     .card-logos {
       display: flex;
       justify-content: center;
@@ -84,9 +83,13 @@
     }
 
     .cc-icon {
-      height: 22px; /* Increased slightly */
+      height: 22px;
       width: auto;
       display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
     }
 
     label {
@@ -99,7 +102,7 @@
       color: var(--text-muted);
     }
 
-    input[type="number"] {
+    input[type="number"], select {
       width: 100%;
       padding: 1rem;
       font-size: 1.1rem;
@@ -110,9 +113,29 @@
       box-sizing: border-box;
       outline: none;
       transition: all 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
     }
 
-    input[type="number"]:focus {
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      select {
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      }
+      select option {
+        background-color: #1f2937;
+        color: #f9fafb;
+      }
+    }
+
+    input[type="number"]:focus, select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
     }
@@ -196,8 +219,19 @@
       </svg>
     </div>
 
-    <label for="netPayout">Desired Net Payout</label>
-    <input type="number" id="netPayout" placeholder="0.00" step="0.01">
+    <div class="form-group">
+      <label for="netPayout">Desired Net Payout</label>
+      <input type="number" id="netPayout" placeholder="0.00" step="0.01">
+    </div>
+
+    <div class="form-group">
+      <label for="payoutSchedule">Payout Schedule</label>
+      <select id="payoutSchedule">
+        <option value="standard">Standard (Free)</option>
+        <option value="nextday">Next-Day (+0.06%)</option>
+        <option value="instant">Instant (+1.5%, $0.50 min)</option>
+      </select>
+    </div>
 
     <div id="output" class="result-container" style="display: none;"></div>
 
@@ -218,14 +252,15 @@
   <script>
     /**
      * STRIPE SURCHARGE CALCULATOR
-     * Reverse math formula: Total = (Net + FixedFee) / (1 - PercentageRate)
+     * Handles variable processing logic based on standard vs premium payout types.
      */
 
     // --- CONFIGURATION ---
-    const STRIPE_FEE_RATE = 0.029;  
-    const STRIPE_FIXED_FEE = 0.30;  
+    const STRIPE_BASE_RATE = 0.029;    // 2.9%
+    const STRIPE_FIXED_FEE = 0.30;     // $0.30
     
     const inputField = document.getElementById('netPayout');
+    const scheduleSelect = document.getElementById('payoutSchedule');
     const outputDiv = document.getElementById('output');
 
     const copyIcon = `<svg class="icon" viewBox="0 0 24 24" style="margin-right: 6px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy`;
@@ -242,16 +277,45 @@
       });
     }
 
-    inputField.addEventListener('input', function () {
-      const net = parseFloat(this.value);
+    function calculateSurcharge() {
+      const net = parseFloat(inputField.value);
       if (isNaN(net) || net <= 0) {
         outputDiv.style.display = 'none';
         return;
       }
 
+      const mode = scheduleSelect.value;
+      let totalFixedFee = STRIPE_FIXED_FEE;
+      let totalPercentageRate = STRIPE_BASE_RATE;
+      let labelText = '2.9%';
+      let step1Text = `1. Net + Fixed Fee ($${STRIPE_FIXED_FEE.toFixed(2)})`;
+
+      if (mode === 'nextday') {
+        totalPercentageRate += 0.0006;
+        labelText = '2.96%';
+      } else if (mode === 'instant') {
+        // --- DYNAMIC INSTANT PAYOUT CHECK ---
+        // Reverse calculation using percentage tier rate (2.9% + 1.5% = 4.4%)
+        const testExactTotal = (net + STRIPE_FIXED_FEE) / (1 - 0.044);
+        const testPayoutVolume = testExactTotal * (1 - STRIPE_BASE_RATE) - STRIPE_FIXED_FEE;
+        const testInstantFee = testPayoutVolume * 0.015;
+
+        if (testInstantFee < 0.50) {
+          // If 1.5% is under $0.50, Stripe drops the percentage and levies a flat $0.50 flat fee instead.
+          // This shifts $0.50 into the fixed fee block. Total Fixed = $0.30 base + $0.50 instant = $0.80
+          totalFixedFee += 0.50;
+          labelText = '2.9%';
+          step1Text = `1. Net + Fees ($0.30 base + $0.50 instant min)`;
+        } else {
+          // Normal percentage matching tier
+          totalPercentageRate += 0.015;
+          labelText = '4.4%';
+        }
+      }
+
       outputDiv.style.display = 'block';
-      const subtotal = net + STRIPE_FIXED_FEE;
-      const exactTotal = subtotal / (1 - STRIPE_FEE_RATE);
+      const subtotal = net + totalFixedFee;
+      const exactTotal = subtotal / (1 - totalPercentageRate);
       const roundedTotal = Math.round(exactTotal * 100) / 100;
       const surcharge = roundedTotal - net;
       const variance = Math.abs(exactTotal - roundedTotal);
@@ -274,11 +338,11 @@
         <div class="breakdown-section">
           <span class="breakdown-title">Logic Breakdown</span>
           <div class="step">
-            <span>1. Net + Fixed Fee ($${STRIPE_FIXED_FEE.toFixed(2)})</span>
+            <span>${step1Text}</span>
             <span>$${subtotal.toFixed(2)}</span>
           </div>
           <div class="step">
-            <span>2. Add 2.9% of Total</span>
+            <span>2. Add ${labelText} of Total</span>
             <span>+$${(exactTotal - subtotal).toFixed(3)}</span>
           </div>
           <div class="step">
@@ -295,7 +359,11 @@
           </div>
         </div>
       `;
-    });
+    }
+
+    // Event listeners
+    inputField.addEventListener('input', calculateSurcharge);
+    scheduleSelect.addEventListener('change', calculateSurcharge);
   </script>
 </body>
 </html>
