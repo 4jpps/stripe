@@ -228,7 +228,7 @@
       <label for="payoutSchedule">Payout Schedule</label>
       <select id="payoutSchedule">
         <option value="standard">Standard (Free)</option>
-        <option value="nextday">Next-Day (+0.06%)</option>
+        <option value="nextday">Next-Day (+0.6%)</option>
         <option value="instant">Instant (+1.5%, $0.50 min)</option>
       </select>
     </div>
@@ -291,23 +291,19 @@
       let step1Text = `1. Net + Fixed Fee ($${STRIPE_FIXED_FEE.toFixed(2)})`;
 
       if (mode === 'nextday') {
-        totalPercentageRate += 0.0006;
-        labelText = '2.96%';
+        totalPercentageRate += 0.006; // Updated to 0.6%
+        labelText = '3.5%';
       } else if (mode === 'instant') {
         // --- DYNAMIC INSTANT PAYOUT CHECK ---
-        // Reverse calculation using percentage tier rate (2.9% + 1.5% = 4.4%)
         const testExactTotal = (net + STRIPE_FIXED_FEE) / (1 - 0.044);
         const testPayoutVolume = testExactTotal * (1 - STRIPE_BASE_RATE) - STRIPE_FIXED_FEE;
         const testInstantFee = testPayoutVolume * 0.015;
 
         if (testInstantFee < 0.50) {
-          // If 1.5% is under $0.50, Stripe drops the percentage and levies a flat $0.50 flat fee instead.
-          // This shifts $0.50 into the fixed fee block. Total Fixed = $0.30 base + $0.50 instant = $0.80
           totalFixedFee += 0.50;
           labelText = '2.9%';
           step1Text = `1. Net + Fees ($0.30 base + $0.50 instant min)`;
         } else {
-          // Normal percentage matching tier
           totalPercentageRate += 0.015;
           labelText = '4.4%';
         }
