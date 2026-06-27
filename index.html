@@ -285,6 +285,7 @@
       }
 
       const mode = scheduleSelect.value;
+      const STRIPE_INSTANT_COMBINED_RATE = STRIPE_BASE_RATE + 0.015;
       let totalFixedFee = STRIPE_FIXED_FEE;
       let totalPercentageRate = STRIPE_BASE_RATE;
       let labelText = '2.9%';
@@ -295,14 +296,14 @@
         labelText = '3.5%';
       } else if (mode === 'instant') {
         // --- DYNAMIC INSTANT PAYOUT CHECK ---
-        const testExactTotal = (net + STRIPE_FIXED_FEE) / (1 - 0.044);
+        const testExactTotal = (net + STRIPE_FIXED_FEE) / (1 - STRIPE_INSTANT_COMBINED_RATE);
         const testPayoutVolume = testExactTotal * (1 - STRIPE_BASE_RATE) - STRIPE_FIXED_FEE;
         const testInstantFee = testPayoutVolume * 0.015;
 
-        if (testInstantFee < 0.50) {
-          totalFixedFee += 0.50;
+        if (testInstantFee < INSTANT_PAYOUT_MIN_FEE) {
+          totalFixedFee += INSTANT_PAYOUT_MIN_FEE;
           labelText = '2.9%';
-          step1Text = `1. Net + Fees ($0.30 base + $0.50 instant min)`;
+          step1Text = `1. Net + Fees ($0.30 base + $${INSTANT_PAYOUT_MIN_FEE.toFixed(2)} instant min)`;
         } else {
           totalPercentageRate += 0.015;
           labelText = '4.4%';
