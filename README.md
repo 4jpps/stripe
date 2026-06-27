@@ -10,7 +10,7 @@ This tool is designed for freelancers, MSPs, and small businesses who need to pa
 - **System Theme Support**: Automatically switches between Light and Dark modes based on user OS settings.
 - **Dynamic Payout Schedules**: Accounts for standard processing alongside premium delivery tiers:
   - **Standard**: Base processing rate (2.9% + $0.30).
-  - **Next-Day**: Optimized next-day payout routing (+0.06%).
+  - **Next-Day**: Optimized next-day payout routing (+0.6%).
   - **Instant Payouts**: Real-time funds transfer (+1.5% with an integrated $0.50 minimum check).
 - **Threshold-Aware Logic**: Uses custom reverse-math formulas that automatically detect if an Instant Payout falls under Stripe's $0.50 minimum fee cap, shifting processing logic gracefully between percentage and flat-rate math.
 - **Detailed Breakdown**: Shows a 4-step logic path including:
