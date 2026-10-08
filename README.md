@@ -46,3 +46,5 @@ For Instant Payouts, Stripe levies an extra 1.5% with a minimum charge of $0.50.
 ```text
 index.html       # Main calculator interface & dropdown logic
 README.md        # Project documentation
+LICENSE          # MIT license
+CNAME            # Custom domain name (surcharge.jpps.us)
