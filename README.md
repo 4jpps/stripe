@@ -19,6 +19,11 @@ This tool is designed for freelancers, MSPs, and small businesses who need to pa
   - **Rounding Variance**: Tracks the fractional-cent difference between raw math and banking reality.
 - **One-Click Copy**: Quickly copy the Surcharge amount to your clipboard for invoicing.
 - **Zero Dependencies**: Pure HTML/CSS/JS. No frameworks, no tracking, no bloat.
+- **Private**: It is a single static page. Nothing you enter is sent anywhere.
+
+## Fee rates
+
+The rates above are hard-coded in `index.html`, not read from Stripe. They were last checked against Stripe's pricing in October 2026. If Stripe changes its fees, update the numbers in `index.html` before relying on the results for invoices.
 
 ## 🌐 Demo Site
 
@@ -48,3 +53,8 @@ index.html       # Main calculator interface & dropdown logic
 README.md        # Project documentation
 LICENSE          # MIT license
 CNAME            # Custom domain name (surcharge.jpps.us)
+```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
